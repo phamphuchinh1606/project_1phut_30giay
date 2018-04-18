@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\MUser;
 
 class AuthController extends BaseController
 {
@@ -31,13 +33,16 @@ class AuthController extends BaseController
      */
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->only('user_name', 'password');
 
         if ($token = $this->guard()->attempt($credentials)) {
             return $this->respondWithToken($token);
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
+        return response()->json([
+                'error' => 'Unauthorized', 
+                'pass'=>Hash::make($credentials['password'])]
+                , 401);
     }
 
     /**
