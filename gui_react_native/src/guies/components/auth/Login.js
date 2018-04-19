@@ -3,15 +3,46 @@ import {
     Container, Header, Left, Body, Right, Button, Icon, Title, Text,
     Content, Item, Input, Footer, View, CheckBox, ListItem
 } from 'native-base';
+import { Field, reduxForm } from 'redux-form';
+
+import apiCaller from '../../../utils/ApiCaller';
+import * as ApiUrl from '../../../containts/ApiUrl';
 
 import LoginStyle from '../../../../public/css/auth/LoginStyle';
 
-export default class Login extends Component {
+const validate = values => {
+    const error = {};
+    error.email = '';
+    error.name = '';
+    var ema = values.email;
+    var nm = values.name;
+    if (values.email === undefined) {
+        ema = '';
+    }
+    if (values.name === undefined) {
+        nm = '';
+    }
+    if (ema.length < 8 && ema !== '') {
+        error.email = 'too short';
+    }
+    if (!ema.includes('@') && ema !== '') {
+        error.email = '@ not included';
+    }
+    if (nm.length > 8) {
+        error.name = 'max 8 characters';
+    }
+    return error;
+};
+
+class Login extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            isSignIn: true
-        }
+            isSignIn: true,
+            user_name: '',
+            password: ''
+        };
+        this.renderInput = this.renderInput.bind(this);
     }
 
     _clickSignIn() {
@@ -22,27 +53,64 @@ export default class Login extends Component {
         this.setState({ isSignIn: false });
     }
 
+    _clickButtonLogin() {
+        console.log(this.state.user_name);
+        console.log(this.state.password);
+        apiCaller(ApiUrl.END_POINT_LOGIN, "POST", JSON.stringify({
+            "user_name": this.state.user_name,
+            "password": this.state.password
+        })).then((responseJson) => {
+            console.log(responseJson);
+            this.checkLogin(responseJson);
+        });
+        console.log("phu chinh vao333");
+    }
+
+    checkLogin(response) {
+        if (response.error != null) {
+            // error login
+
+        }
+    }
+
+    renderInput({ input, label, type, meta: { touched, error, warning } }) {
+        var hasError = false;
+        if (error !== undefined) {
+            hasError = true;
+        }
+        return (
+            <Item error={hasError}>
+                <Input {...input} />
+                {hasError ? <Text>{error}</Text> : <Text />}
+            </Item>
+        )
+    }
+
     render() {
         let { headerBody, content, textInput, textButton, textTitle,
             footer, footerButton } = LoginStyle;
 
         const signInJsx = (
             <Content style={content}>
+                <Field name="email" component={this.renderInput} />
+
                 <Item style={textInput}>
                     <Icon active name='person' />
-                    <Input placeholder='Tên đăng nhập' />
+                    <Input placeholder='Tên đăng nhập' value={this.state.user_name}
+                        onChangeText={(user) => this.setState({ user_name: user })} />
                 </Item>
                 <Item style={textInput}>
                     <Icon name='key' />
-                    <Input placeholder='Mật khẩu' />
+                    <Input placeholder='Mật khẩu' value={this.state.password} type="password"
+                        onChangeText={(pass) => this.setState({ password: pass })} />
                 </Item>
                 <ListItem>
-                    <CheckBox checked={true} color="green"/>
+                    <CheckBox checked={true} color="green" />
                     <Body>
                         <Text>Ghi nhớ đăng nhập</Text>
                     </Body>
                 </ListItem>
-                <Button block info>
+                <Button iconLeft onPress={this._clickButtonLogin.bind(this)}>
                     <Text style={textButton}>Đăng nhập</Text>
                 </Button>
             </Content>
@@ -58,14 +126,14 @@ export default class Login extends Component {
                     <Input placeholder='Tên đăng nhập' />
                 </Item>
                 <Item style={textInput}>
-                    <Icon  name='key' />
+                    <Icon name='key' />
                     <Input placeholder='Mật khẩu' />
                 </Item>
                 <Item style={textInput}>
                     <Icon name='key' />
                     <Input placeholder='Nhập lại mật khẩu' />
                 </Item>
-                <Button block info>
+                <Button block info onPress={this._clickSignUp.bind(this)}>
                     <Text style={textButton}>Đăng ký</Text>
                 </Button>
             </Content>
@@ -105,3 +173,8 @@ export default class Login extends Component {
         )
     }
 }
+
+export default reduxForm({
+    form: 'test',
+    validate
+})(Login)

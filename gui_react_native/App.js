@@ -7,6 +7,11 @@
 import React, { Component } from 'react';
 import {Platform} from 'react-native';
 import Login from './src/guies/components/auth/Login';
+import allReducers from './src/guies/reducers/index';
+import {createStore} from 'redux';
+import {Provider} from 'react-redux';
+import { Field, reduxForm } from 'redux-form';
+const store = createStore(allReducers);
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
@@ -19,7 +24,9 @@ type Props = {};
 export default class App extends Component<Props> {
   render() {
     return (
-      <Login/>
+      <Provider store={store}>
+        <Login/>
+      </Provider>
     );
   }
 }
